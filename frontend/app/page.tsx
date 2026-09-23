@@ -87,7 +87,7 @@ const Avatar = ({ user, size = 36 }: { user: User; size?: number }) => {
   return (
     <div
       style={{ width: size, height: size }}
-      className="rounded-full shrink-0 bg-gradient-to-br from-cyan-400 via-violet-500 to-fuchsia-500 flex items-center justify-center text-sm font-semibold text-white"
+      className="rounded-full shrink-0 bg-gradient-to-br from-cyan-400 via-teal-400 to-amber-400 flex items-center justify-center text-sm font-semibold text-white"
     >
       {initial}
     </div>
@@ -446,7 +446,7 @@ export default function Home() {
       ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
       : s === "rejected"
         ? "bg-red-500/20 text-red-300 border border-red-500/30"
-        : "bg-violet-500/20 text-violet-200 border border-violet-400/30";
+        : "bg-amber-500/20 text-amber-200 border border-amber-400/30";
 
   const formatEventTime = (t: string | null) => {
     if (!t) return "No time set";
@@ -472,10 +472,10 @@ export default function Home() {
 
   const cardClass =
     "rounded-2xl bg-white/[0.05] border border-white/10 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] p-6";
-  // Hierarchy-fixed gradient: cyan (lead) -> violet (secondary) only, 2 stops.
-  // Used everywhere the old 3-stop cyan/violet/fuchsia gradient used to be.
-  const gradientText = "bg-gradient-to-r from-cyan-200 to-violet-200 bg-clip-text text-transparent";
-  const gradientBg = "bg-gradient-to-r from-cyan-400 to-violet-500";
+  // Brand gradient: cyan (lead) -> teal -> gold, 3 stops.
+  // Used for the logo, primary buttons, and headline text across the app.
+  const gradientText = "bg-gradient-to-r from-cyan-200 via-teal-200 to-amber-200 bg-clip-text text-transparent";
+  const gradientBg = "bg-gradient-to-r from-cyan-400 via-teal-400 to-amber-400";
 
   const navItems: { id: Section; label: string; icon: ReactNode; count: number }[] = [
     { id: "chat", label: "Chat", icon: <IconChat />, count: 0 },
@@ -503,7 +503,7 @@ export default function Home() {
         <StageLight />
 
         <div className="relative z-10 text-center max-w-lg">
-          <div className={`w-20 h-20 mx-auto rounded-3xl ${gradientBg} flex items-center justify-center shadow-[0_0_50px_rgba(168,85,247,0.45)] mb-6 text-white`}>
+          <div className={`w-20 h-20 mx-auto rounded-3xl ${gradientBg} flex items-center justify-center shadow-[0_0_50px_rgba(45,212,191,0.45)] mb-6 text-white`}>
             <div className="scale-[2]"><IconBolt /></div>
           </div>
           <h1 className={`text-4xl font-bold ${gradientText} mb-2`}>Workora AI</h1>
@@ -512,8 +512,8 @@ export default function Home() {
           <div className="space-y-3 text-left mb-10">
             {[
               { icon: <IconChat />, text: "Talk naturally, get real work done", color: "text-cyan-300" },
-              { icon: <IconCheck />, text: "Tasks, Projects & Calendar, unified", color: "text-violet-300" },
-              { icon: <IconInbox />, text: "Human approval before anything is sent", color: "text-pink-300" },
+              { icon: <IconCheck />, text: "Tasks, Projects & Calendar, unified", color: "text-teal-300" },
+              { icon: <IconInbox />, text: "Human approval before anything is sent", color: "text-amber-300" },
             ].map((item, i) => (
               <div
                 key={i}
@@ -559,7 +559,7 @@ export default function Home() {
             left: -75%;
             width: 50%;
             height: 100%;
-            background: linear-gradient(120deg, transparent, rgba(168,92,246,0.25), transparent);
+            background: linear-gradient(120deg, transparent, rgba(45,212,244,0.3), transparent);
             transform: skewX(-20deg);
             animation: shimmerMove 2.5s infinite;
           }
@@ -603,7 +603,7 @@ export default function Home() {
               key={item.id}
               onClick={() => setActiveSection(item.id)}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition ${activeSection === item.id
-                ? "bg-gradient-to-r from-cyan-500/20 to-violet-500/20 text-white border border-white/15"
+                ? "bg-gradient-to-r from-cyan-500/20 to-teal-500/20 text-white border border-white/15"
                 : "text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent"
                 }`}
             >
@@ -640,7 +640,7 @@ export default function Home() {
               )}
               <button
                 onClick={logout}
-                className="w-full text-left text-sm text-pink-300 hover:bg-white/5 rounded-lg px-3 py-2"
+                className="w-full text-left text-sm text-amber-300 hover:bg-white/5 rounded-lg px-3 py-2"
               >
                 Log out
               </button>
@@ -684,7 +684,7 @@ export default function Home() {
                       <span
                         className={
                           msg.role === "user"
-                            ? `inline-block ${gradientBg} text-white px-4 py-2 rounded-2xl rounded-br-sm max-w-[80%] text-left whitespace-pre-wrap shadow-[0_4px_20px_rgba(139,92,246,0.3)]`
+                            ? `inline-block ${gradientBg} text-white px-4 py-2 rounded-2xl rounded-br-sm max-w-[80%] text-left whitespace-pre-wrap shadow-[0_4px_20px_rgba(45,212,191,0.3)]`
                             : "inline-block bg-white/[0.07] backdrop-blur-xl text-slate-200 px-4 py-2 rounded-2xl rounded-bl-sm max-w-[80%] whitespace-pre-wrap border border-white/10"
                         }
                       >
@@ -707,7 +707,7 @@ export default function Home() {
               <div className="shrink-0 border-t border-white/10 bg-[#030304]/90 backdrop-blur-xl px-6 py-4">
                 <div className="max-w-3xl mx-auto flex gap-2">
                   <input
-                    className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 flex-1 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50"
+                    className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 flex-1 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50"
                     placeholder={listening ? "Listening..." : "Type a message..."}
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
@@ -715,7 +715,7 @@ export default function Home() {
                   />
                   <button
                     className={`px-4 py-2.5 rounded-xl font-medium transition border flex items-center justify-center ${listening
-                      ? "bg-fuchsia-500 border-fuchsia-400 animate-pulse text-white"
+                      ? "bg-amber-500 border-amber-400 animate-pulse text-white"
                       : "bg-white/5 border-white/10 hover:bg-white/10 text-slate-300"
                       }`}
                     onClick={toggleListening}
@@ -724,7 +724,7 @@ export default function Home() {
                     <IconMic active={listening} />
                   </button>
                   <button
-                    className={`${gradientBg} hover:opacity-90 text-white px-6 py-2.5 rounded-xl font-semibold transition shadow-[0_4px_20px_rgba(139,92,246,0.35)]`}
+                    className={`${gradientBg} hover:opacity-90 text-white px-6 py-2.5 rounded-xl font-semibold transition shadow-[0_4px_20px_rgba(45,212,191,0.35)]`}
                     onClick={sendMessage}
                   >
                     Send
@@ -759,7 +759,7 @@ export default function Home() {
                               <span className={`text-xs px-2 py-0.5 rounded-full ${priorityColor(task.priority)}`}>
                                 {task.priority}
                               </span>
-                              <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-200 border border-violet-400/30">
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-200 border border-teal-400/30">
                                 {task.status}
                               </span>
                               {formatDueDate(task.due_date) && (
@@ -769,7 +769,7 @@ export default function Home() {
                               )}
                             </div>
                           </div>
-                          <button className="text-slate-600 hover:text-pink-400 text-sm" onClick={() => deleteTask(task.id)}>
+                          <button className="text-slate-600 hover:text-red-400 text-sm" onClick={() => deleteTask(task.id)}>
                             ✕
                           </button>
                         </li>
@@ -781,7 +781,7 @@ export default function Home() {
                 {activeSection === "projects" && (
                   <div className={cardClass}>
                     <div className="flex items-center justify-between mb-5">
-                      <div className="flex items-center gap-2 text-violet-300">
+                      <div className="flex items-center gap-2 text-teal-300">
                         <IconFolder />
                         <h2 className="font-semibold text-slate-100">Projects</h2>
                       </div>
@@ -798,12 +798,12 @@ export default function Home() {
                         >
                           <div>
                             <p className="font-medium text-slate-100">{project.name}</p>
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-200 border border-violet-400/30 inline-block mt-2">
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-200 border border-teal-400/30 inline-block mt-2">
                               {project.status}
                             </span>
                           </div>
                           <button
-                            className="text-slate-600 hover:text-pink-400 text-sm"
+                            className="text-slate-600 hover:text-red-400 text-sm"
                             onClick={() => deleteProject(project.id)}
                           >
                             ✕
@@ -817,7 +817,7 @@ export default function Home() {
                 {activeSection === "events" && (
                   <div className={cardClass}>
                     <div className="flex items-center justify-between mb-5">
-                      <div className="flex items-center gap-2 text-fuchsia-300">
+                      <div className="flex items-center gap-2 text-amber-300">
                         <IconCalendar />
                         <h2 className="font-semibold text-slate-100">Events</h2>
                       </div>
@@ -838,7 +838,7 @@ export default function Home() {
                               {formatEventTime(event.event_time)}
                             </span>
                           </div>
-                          <button className="text-slate-600 hover:text-pink-400 text-sm" onClick={() => deleteEvent(event.id)}>
+                          <button className="text-slate-600 hover:text-red-400 text-sm" onClick={() => deleteEvent(event.id)}>
                             ✕
                           </button>
                         </li>
@@ -850,7 +850,7 @@ export default function Home() {
                 {activeSection === "approvals" && (
                   <div className={cardClass}>
                     <div className="flex items-center justify-between mb-5">
-                      <div className="flex items-center gap-2 text-pink-300">
+                      <div className="flex items-center gap-2 text-cyan-200">
                         <IconInbox />
                         <h2 className="font-semibold text-slate-100">Approvals</h2>
                       </div>
