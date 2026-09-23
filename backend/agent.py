@@ -1,5 +1,6 @@
 import os
 import uuid
+import logging
 from dotenv import load_dotenv
 from datetime import datetime as dt
 import openpyxl
@@ -9,15 +10,27 @@ from models import Task, Project, Event, ApprovalRequest, UserMemory
 
 load_dotenv()
 
+logger = logging.getLogger("workora.agent")
+
 client = AsyncOpenAI(
     api_key=os.getenv("APINEX_API_KEY"),
     base_url=os.getenv("APINEX_BASE_URL"),
 )
 
-model = OpenAIChatCompletionsModel(
-    model="free/glm-5.3-flash",
-    openai_client=client,
-)
+# Ordered list of free APInex models. The first is the primary model in normal use.
+# If a model call fails (quota exceeded, subscription error, etc.), the next model
+# in this list is tried automatically, silently, without the user noticing.
+# Reorder this list any time by just changing the order of the strings below.
+MODEL_FALLBACK_LIST = [
+    "free/glm-5.3-flash",
+    "free/gemini-3.8-flash",
+    "free/deepseek-v4-pro-0813",
+    "free/gemini-3.1-pro",
+    "free/gpt-5.6-luna",
+    "free/deepseek-v4-flash-0731",
+    "free/qwen-3.8-max",
+    "free/muse-spark-1.3",
+]
 
 
 def build_tools(user_id: int):
@@ -215,12 +228,7 @@ async def run_agent(
         memory_text = "\n".join(f"- {m}" for m in memories)
         instructions += f"\n\nKnown facts and preferences about this user, remembered from past conversations:\n{memory_text}"
 
-    dynamic_agent = Agent(
-        name="Workora AI",
-        instructions=instructions,
-        tools=build_tools(user_id),
-        model=model,
-    )
+    tools = build_tools(user_id)
 
     input_items = []
     if history:
@@ -228,5 +236,37 @@ async def run_agent(
             input_items.append({"role": h["role"], "content": h["content"]})
     input_items.append({"role": "user", "content": message})
 
-    result = await Runner.run(dynamic_agent, input_items)
-    return result.final_output
+    # Try each model in MODEL_FALLBACK_LIST in order. If one fails (e.g. quota
+    # or subscription error), silently move to the next one. The user never
+    # sees which model actually answered — only a log entry records it.
+    last_error = None
+    for index, model_name in enumerate(MODEL_FALLBACK_LIST):
+        try:
+            model = OpenAIChatCompletionsModel(
+                model=model_name,
+                openai_client=client,
+            )
+            dynamic_agent = Agent(
+                name="Workora AI",
+                instructions=instructions,
+                tools=tools,
+                model=model,
+            )
+            result = await Runner.run(dynamic_agent, input_items)
+            if index > 0:
+                logger.warning(
+                    f"Workora AI: primary model unavailable, served this response using "
+                    f"fallback model '{model_name}' (attempt {index + 1} of {len(MODEL_FALLBACK_LIST)})."
+                )
+            return result.final_output
+        except Exception as e:
+            last_error = e
+            logger.warning(
+                f"Workora AI: model '{model_name}' failed ({e}). "
+                f"Trying next model in fallback list."
+            )
+            continue
+
+    # Every model in the list failed.
+    logger.error(f"Workora AI: all models in fallback list failed. Last error: {last_error}")
+    return "Sorry, I'm having trouble reaching any AI model right now. Please try again in a few minutes."

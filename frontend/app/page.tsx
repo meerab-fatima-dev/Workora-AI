@@ -56,6 +56,11 @@ const IconMic = ({ active }: { active?: boolean }) => (
     <path d="M5 10a7 7 0 0014 0M12 19v3M9 22h6" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
+const IconPlus = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+    <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+  </svg>
+);
 const IconGoogle = () => (
   <svg viewBox="0 0 48 48" className="w-5 h-5">
     <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
@@ -100,6 +105,74 @@ const renderText = (text: string) => {
     ) : (
       <span key={i}>{part}</span>
     )
+  );
+};
+
+// Fixed stage-light background: ONE lead color (cyan) + ONE secondary color (violet),
+// plus a single seamless ambient center haze. No competing accent hues, no shape edges
+// crossing the content. Stays absolutely positioned behind content, never moves or
+// reacts to scrolling.
+const StageLight = ({ strong = true }: { strong?: boolean }) => {
+  const o = strong ? 1 : 0.55;
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {/* Ambient center haze — ONE soft radial glow, blended lead-into-secondary,
+          sized well past the viewport and faded to fully transparent before its
+          own edge, so there is no discernible boundary anywhere on screen
+          (this replaces the old two-blob setup that caused the diagonal seam
+          through the login page feature boxes). */}
+      <div
+        className="absolute"
+        style={{
+          top: "50%",
+          left: "50%",
+          width: "170vmax",
+          height: "170vmax",
+          transform: "translate(-50%, -50%)",
+          background: `radial-gradient(circle, rgba(34,211,238,${0.07 * o}) 0%, rgba(34,211,238,${0.035 * o}) 28%, rgba(139,92,246,${0.02 * o}) 50%, transparent 70%)`,
+          filter: "blur(40px)",
+        }}
+      />
+
+      {/* LEAD color: cyan — largest, brightest, the dominant hue */}
+      <div
+        className="absolute rounded-full blur-[110px] mix-blend-screen"
+        style={{ top: -180, left: -120, width: 620, height: 620, background: `rgba(34,211,238,${0.42 * o})` }}
+      />
+      <div
+        className="absolute rounded-full blur-[110px] mix-blend-screen"
+        style={{ bottom: -180, right: -140, width: 600, height: 600, background: `rgba(34,211,238,${0.3 * o})` }}
+      />
+
+      {/* SECONDARY color: violet — clearly smaller and dimmer than the cyan lead,
+          supports it rather than competing with it. No other accent hues. */}
+      <div
+        className="absolute rounded-full blur-[100px] mix-blend-screen"
+        style={{ top: -120, right: -100, width: 380, height: 410, background: `rgba(139,92,246,${0.22 * o})` }}
+      />
+      <div
+        className="absolute rounded-full blur-[100px] mix-blend-screen"
+        style={{ bottom: -100, left: -80, width: 360, height: 380, background: `rgba(139,92,246,${0.18 * o})` }}
+      />
+
+      <div
+        className="absolute inset-0 opacity-70"
+        style={{
+          backgroundImage:
+            "radial-gradient(1px 1px at 10% 8%, rgba(255,255,255,0.7), transparent), " +
+            "radial-gradient(1px 1px at 30% 4%, rgba(255,255,255,0.5), transparent), " +
+            "radial-gradient(1.5px 1.5px at 52% 12%, rgba(255,255,255,0.6), transparent), " +
+            "radial-gradient(1px 1px at 72% 6%, rgba(255,255,255,0.5), transparent), " +
+            "radial-gradient(1px 1px at 14% 28%, rgba(255,255,255,0.4), transparent), " +
+            "radial-gradient(1.5px 1.5px at 90% 20%, rgba(255,255,255,0.55), transparent), " +
+            "radial-gradient(1px 1px at 38% 55%, rgba(255,255,255,0.4), transparent), " +
+            "radial-gradient(1px 1px at 76% 62%, rgba(255,255,255,0.5), transparent), " +
+            "radial-gradient(1px 1px at 20% 80%, rgba(255,255,255,0.4), transparent), " +
+            "radial-gradient(1.5px 1.5px at 58% 88%, rgba(255,255,255,0.5), transparent)",
+          backgroundSize: "420px 620px",
+        }}
+      />
+    </div>
   );
 };
 
@@ -322,6 +395,14 @@ export default function Home() {
     fetchAll();
   };
 
+  // Starts a fresh conversation — clears the chat log so a long/stuck
+  // conversation doesn't need a full page reload. Tasks/Projects/Events/
+  // Approvals data is untouched, only the chat thread resets.
+  const newChat = () => {
+    setChatLog([]);
+    setActiveSection("chat");
+  };
+
   const deleteTask = async (id: number) => {
     await api(`/tasks/${id}`, { method: "DELETE" });
     fetchTasks();
@@ -391,8 +472,10 @@ export default function Home() {
 
   const cardClass =
     "rounded-2xl bg-white/[0.05] border border-white/10 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] p-6";
-  const gradientText = "bg-gradient-to-r from-cyan-200 via-violet-200 to-pink-200 bg-clip-text text-transparent";
-  const gradientBg = "bg-gradient-to-r from-cyan-400 via-violet-500 to-fuchsia-500";
+  // Hierarchy-fixed gradient: cyan (lead) -> violet (secondary) only, 2 stops.
+  // Used everywhere the old 3-stop cyan/violet/fuchsia gradient used to be.
+  const gradientText = "bg-gradient-to-r from-cyan-200 to-violet-200 bg-clip-text text-transparent";
+  const gradientBg = "bg-gradient-to-r from-cyan-400 to-violet-500";
 
   const navItems: { id: Section; label: string; icon: ReactNode; count: number }[] = [
     { id: "chat", label: "Chat", icon: <IconChat />, count: 0 },
@@ -405,7 +488,7 @@ export default function Home() {
   // ================= SCREEN 1: checking login =================
   if (!authChecked) {
     return (
-      <main className="min-h-screen bg-[#050914] flex items-center justify-center">
+      <main className="min-h-screen bg-[#030304] flex items-center justify-center">
         <div className={`w-14 h-14 rounded-2xl ${gradientBg} flex items-center justify-center text-white animate-pulse`}>
           <IconBolt />
         </div>
@@ -416,13 +499,11 @@ export default function Home() {
   // ================= SCREEN 2: login / landing =================
   if (!user) {
     return (
-      <main className="min-h-screen relative overflow-hidden bg-gradient-to-b from-[#050914] via-[#080b1f] to-[#030510] text-white flex items-center justify-center px-6">
-        <div className="absolute top-[-15%] left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-cyan-500/15 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-15%] right-[8%] w-96 h-96 bg-fuchsia-500/15 rounded-full blur-[110px]" />
-        <div className="absolute bottom-[-10%] left-[5%] w-72 h-72 bg-violet-600/20 rounded-full blur-[100px]" />
+      <main className="min-h-screen relative overflow-hidden bg-[#030304] text-white flex items-center justify-center px-6">
+        <StageLight />
 
         <div className="relative z-10 text-center max-w-lg">
-          <div className={`w-20 h-20 mx-auto rounded-3xl ${gradientBg} flex items-center justify-center shadow-[0_0_40px_rgba(139,92,246,0.45)] mb-6 text-white`}>
+          <div className={`w-20 h-20 mx-auto rounded-3xl ${gradientBg} flex items-center justify-center shadow-[0_0_50px_rgba(168,85,247,0.45)] mb-6 text-white`}>
             <div className="scale-[2]"><IconBolt /></div>
           </div>
           <h1 className={`text-4xl font-bold ${gradientText} mb-2`}>Workora AI</h1>
@@ -454,7 +535,7 @@ export default function Home() {
             onClick={() => {
               window.location.href = `${API}/auth/google/login`;
             }}
-            className="relative overflow-hidden inline-flex items-center gap-3 bg-white text-slate-800 px-8 py-3.5 rounded-xl font-semibold shadow-[0_0_30px_rgba(139,92,246,0.35)] hover:shadow-[0_0_45px_rgba(34,211,238,0.5)] transition-shadow"
+            className="relative overflow-hidden inline-flex items-center gap-3 bg-white text-slate-800 px-8 py-3.5 rounded-xl font-semibold shadow-[0_0_30px_rgba(168,85,247,0.35)] hover:shadow-[0_0_45px_rgba(34,211,238,0.5)] transition-shadow"
           >
             <span className="relative z-10 flex items-center gap-3">
               <IconGoogle />
@@ -462,6 +543,9 @@ export default function Home() {
             </span>
             <span className="absolute inset-0 shimmer" />
           </button>
+          {/* This line matters: it's the app's only self-explanation to someone opening
+              the live link with no other context — it tells them nothing is ever sent
+              without their approval, before Google's own permission screen appears. */}
           <p className="text-xs text-slate-500 mt-4">
             Gmail access is used only to send emails that you approve.
           </p>
@@ -475,7 +559,7 @@ export default function Home() {
             left: -75%;
             width: 50%;
             height: 100%;
-            background: linear-gradient(120deg, transparent, rgba(139,92,246,0.25), transparent);
+            background: linear-gradient(120deg, transparent, rgba(168,92,246,0.25), transparent);
             transform: skewX(-20deg);
             animation: shimmerMove 2.5s infinite;
           }
@@ -492,14 +576,25 @@ export default function Home() {
   const firstName = (user.name || user.email).split(" ")[0];
 
   return (
-    <main className="h-screen flex bg-[#050914] text-white overflow-hidden">
+    <main className="h-screen flex bg-[#030304] text-white overflow-hidden">
       {/* ---------- Sidebar ---------- */}
-      <aside className="w-64 shrink-0 bg-[#070c1a] border-r border-white/10 flex flex-col">
+      <aside className="w-64 shrink-0 bg-[#050506] border-r border-white/10 flex flex-col relative z-10">
         <div className="flex items-center gap-2 px-5 py-5 border-b border-white/10">
           <div className={`w-8 h-8 rounded-lg ${gradientBg} flex items-center justify-center text-white shrink-0`}>
             <IconBolt />
           </div>
           <span className={`font-semibold ${gradientText}`}>Workora AI</span>
+        </div>
+
+        {/* New Chat */}
+        <div className="px-3 pt-3">
+          <button
+            onClick={newChat}
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-slate-300 hover:bg-white/5 hover:text-white border border-white/10 transition"
+          >
+            <IconPlus />
+            New Chat
+          </button>
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
@@ -508,7 +603,7 @@ export default function Home() {
               key={item.id}
               onClick={() => setActiveSection(item.id)}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition ${activeSection === item.id
-                ? "bg-gradient-to-r from-cyan-500/20 via-violet-500/15 to-fuchsia-500/20 text-white border border-white/15"
+                ? "bg-gradient-to-r from-cyan-500/20 to-violet-500/20 text-white border border-white/15"
                 : "text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent"
                 }`}
             >
@@ -565,249 +660,252 @@ export default function Home() {
       </aside>
 
       {/* ---------- Main panel ---------- */}
-      <div className="flex-1 min-w-0 h-screen flex flex-col">
-        {activeSection === "chat" ? (
-          <div className="flex-1 min-h-0 flex flex-col">
-            {/* Messages scroll here */}
-            <div className="flex-1 min-h-0 overflow-y-auto">
-              <div className="max-w-3xl mx-auto px-6 py-8 space-y-3">
-                {chatLog.length === 0 && (
-                  <div className="text-center py-24">
-                    <div className="flex justify-center mb-4">
-                      <Avatar user={user} size={56} />
+      <div className="flex-1 min-w-0 h-screen flex flex-col relative">
+        <StageLight strong={false} />
+        <div className="relative z-10 flex-1 min-h-0 flex flex-col">
+          {activeSection === "chat" ? (
+            <div className="flex-1 min-h-0 flex flex-col">
+              {/* Messages scroll here */}
+              <div className="flex-1 min-h-0 overflow-y-auto">
+                <div className="max-w-3xl mx-auto px-6 py-8 space-y-3">
+                  {chatLog.length === 0 && (
+                    <div className="text-center py-24">
+                      <div className="flex justify-center mb-4">
+                        <Avatar user={user} size={56} />
+                      </div>
+                      <h2 className={`text-2xl font-semibold ${gradientText} mb-2`}>Welcome, {firstName}</h2>
+                      <p className="text-slate-500 text-sm italic">
+                        Try: &quot;Create a high priority task to finish my report&quot;
+                      </p>
                     </div>
-                    <h2 className={`text-2xl font-semibold ${gradientText} mb-2`}>Welcome, {firstName}</h2>
-                    <p className="text-slate-500 text-sm italic">
-                      Try: &quot;Create a high priority task to finish my report&quot;
-                    </p>
-                  </div>
-                )}
-                {chatLog.map((msg, i) => (
-                  <div key={i} className={msg.role === "user" ? "text-right" : "text-left"}>
-                    <span
-                      className={
-                        msg.role === "user"
-                          ? `inline-block ${gradientBg} text-white px-4 py-2 rounded-2xl rounded-br-sm max-w-[80%] text-left whitespace-pre-wrap shadow-[0_4px_20px_rgba(139,92,246,0.3)]`
-                          : "inline-block bg-white/[0.07] backdrop-blur-xl text-slate-200 px-4 py-2 rounded-2xl rounded-bl-sm max-w-[80%] whitespace-pre-wrap border border-white/10"
-                      }
-                    >
-                      {renderText(msg.text)}
-                    </span>
-                  </div>
-                ))}
-                {loading && (
-                  <div className="flex items-center gap-1 text-slate-500 text-sm">
-                    <span className="animate-pulse">●</span>
-                    <span className="animate-pulse delay-150">●</span>
-                    <span className="animate-pulse delay-300">●</span>
-                  </div>
-                )}
-                <div ref={bottomRef} />
-              </div>
-            </div>
-
-            {/* Input pinned to the bottom */}
-            <div className="shrink-0 border-t border-white/10 bg-[#050914]/90 backdrop-blur-xl px-6 py-4">
-              <div className="max-w-3xl mx-auto flex gap-2">
-                <input
-                  className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 flex-1 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50"
-                  placeholder={listening ? "Listening..." : "Type a message..."}
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                />
-                <button
-                  className={`px-4 py-2.5 rounded-xl font-medium transition border flex items-center justify-center ${listening
-                    ? "bg-fuchsia-500 border-fuchsia-400 animate-pulse text-white"
-                    : "bg-white/5 border-white/10 hover:bg-white/10 text-slate-300"
-                    }`}
-                  onClick={toggleListening}
-                  title="Voice input"
-                >
-                  <IconMic active={listening} />
-                </button>
-                <button
-                  className={`${gradientBg} hover:opacity-90 text-white px-6 py-2.5 rounded-xl font-semibold transition shadow-[0_4px_20px_rgba(139,92,246,0.35)]`}
-                  onClick={sendMessage}
-                >
-                  Send
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="flex-1 overflow-y-auto">
-            <div className="max-w-3xl mx-auto px-8 py-8">
-              {activeSection === "tasks" && (
-                <div className={cardClass}>
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="flex items-center gap-2 text-cyan-300">
-                      <IconCheck />
-                      <h2 className="font-semibold text-slate-100">Tasks</h2>
-                    </div>
-                    <span className="text-xs bg-white/10 text-slate-400 px-2 py-1 rounded-full border border-white/10">
-                      {tasks.length}
-                    </span>
-                  </div>
-                  <ul className="space-y-2">
-                    {tasks.length === 0 && <p className="text-slate-500 text-sm">No tasks yet.</p>}
-                    {tasks.map((task) => (
-                      <li
-                        key={task.id}
-                        className="flex justify-between items-start bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/[0.08] transition"
+                  )}
+                  {chatLog.map((msg, i) => (
+                    <div key={i} className={msg.role === "user" ? "text-right" : "text-left"}>
+                      <span
+                        className={
+                          msg.role === "user"
+                            ? `inline-block ${gradientBg} text-white px-4 py-2 rounded-2xl rounded-br-sm max-w-[80%] text-left whitespace-pre-wrap shadow-[0_4px_20px_rgba(139,92,246,0.3)]`
+                            : "inline-block bg-white/[0.07] backdrop-blur-xl text-slate-200 px-4 py-2 rounded-2xl rounded-bl-sm max-w-[80%] whitespace-pre-wrap border border-white/10"
+                        }
                       >
-                        <div>
-                          <p className="font-medium text-slate-100">{task.title}</p>
-                          <div className="flex gap-1.5 mt-2 items-center flex-wrap">
-                            <span className={`text-xs px-2 py-0.5 rounded-full ${priorityColor(task.priority)}`}>
-                              {task.priority}
-                            </span>
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-200 border border-violet-400/30">
-                              {task.status}
-                            </span>
-                            {formatDueDate(task.due_date) && (
-                              <span className="text-xs text-slate-400">
-                                📅 {formatDueDate(task.due_date)}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <button className="text-slate-600 hover:text-pink-400 text-sm" onClick={() => deleteTask(task.id)}>
-                          ✕
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
+                        {renderText(msg.text)}
+                      </span>
+                    </div>
+                  ))}
+                  {loading && (
+                    <div className="flex items-center gap-1 text-slate-500 text-sm">
+                      <span className="animate-pulse">●</span>
+                      <span className="animate-pulse delay-150">●</span>
+                      <span className="animate-pulse delay-300">●</span>
+                    </div>
+                  )}
+                  <div ref={bottomRef} />
                 </div>
-              )}
+              </div>
 
-              {activeSection === "projects" && (
-                <div className={cardClass}>
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="flex items-center gap-2 text-violet-300">
-                      <IconFolder />
-                      <h2 className="font-semibold text-slate-100">Projects</h2>
+              {/* Input pinned to the bottom */}
+              <div className="shrink-0 border-t border-white/10 bg-[#030304]/90 backdrop-blur-xl px-6 py-4">
+                <div className="max-w-3xl mx-auto flex gap-2">
+                  <input
+                    className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 flex-1 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50"
+                    placeholder={listening ? "Listening..." : "Type a message..."}
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                  />
+                  <button
+                    className={`px-4 py-2.5 rounded-xl font-medium transition border flex items-center justify-center ${listening
+                      ? "bg-fuchsia-500 border-fuchsia-400 animate-pulse text-white"
+                      : "bg-white/5 border-white/10 hover:bg-white/10 text-slate-300"
+                      }`}
+                    onClick={toggleListening}
+                    title="Voice input"
+                  >
+                    <IconMic active={listening} />
+                  </button>
+                  <button
+                    className={`${gradientBg} hover:opacity-90 text-white px-6 py-2.5 rounded-xl font-semibold transition shadow-[0_4px_20px_rgba(139,92,246,0.35)]`}
+                    onClick={sendMessage}
+                  >
+                    Send
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex-1 overflow-y-auto">
+              <div className="max-w-3xl mx-auto px-8 py-8">
+                {activeSection === "tasks" && (
+                  <div className={cardClass}>
+                    <div className="flex items-center justify-between mb-5">
+                      <div className="flex items-center gap-2 text-cyan-300">
+                        <IconCheck />
+                        <h2 className="font-semibold text-slate-100">Tasks</h2>
+                      </div>
+                      <span className="text-xs bg-white/10 text-slate-400 px-2 py-1 rounded-full border border-white/10">
+                        {tasks.length}
+                      </span>
                     </div>
-                    <span className="text-xs bg-white/10 text-slate-400 px-2 py-1 rounded-full border border-white/10">
-                      {projects.length}
-                    </span>
-                  </div>
-                  <ul className="space-y-2">
-                    {projects.length === 0 && <p className="text-slate-500 text-sm">No projects yet.</p>}
-                    {projects.map((project) => (
-                      <li
-                        key={project.id}
-                        className="flex justify-between items-start bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/[0.08] transition"
-                      >
-                        <div>
-                          <p className="font-medium text-slate-100">{project.name}</p>
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-200 border border-violet-400/30 inline-block mt-2">
-                            {project.status}
-                          </span>
-                        </div>
-                        <button
-                          className="text-slate-600 hover:text-pink-400 text-sm"
-                          onClick={() => deleteProject(project.id)}
+                    <ul className="space-y-2">
+                      {tasks.length === 0 && <p className="text-slate-500 text-sm">No tasks yet.</p>}
+                      {tasks.map((task) => (
+                        <li
+                          key={task.id}
+                          className="flex justify-between items-start bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/[0.08] transition"
                         >
-                          ✕
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {activeSection === "events" && (
-                <div className={cardClass}>
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="flex items-center gap-2 text-fuchsia-300">
-                      <IconCalendar />
-                      <h2 className="font-semibold text-slate-100">Events</h2>
-                    </div>
-                    <span className="text-xs bg-white/10 text-slate-400 px-2 py-1 rounded-full border border-white/10">
-                      {events.length}
-                    </span>
-                  </div>
-                  <ul className="space-y-2">
-                    {events.length === 0 && <p className="text-slate-500 text-sm">No events yet.</p>}
-                    {events.map((event) => (
-                      <li
-                        key={event.id}
-                        className="flex justify-between items-start bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/[0.08] transition"
-                      >
-                        <div>
-                          <p className="font-medium text-slate-100">{event.title}</p>
-                          <span className="text-xs text-slate-400 mt-1 block">
-                            {formatEventTime(event.event_time)}
-                          </span>
-                        </div>
-                        <button className="text-slate-600 hover:text-pink-400 text-sm" onClick={() => deleteEvent(event.id)}>
-                          ✕
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {activeSection === "approvals" && (
-                <div className={cardClass}>
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="flex items-center gap-2 text-pink-300">
-                      <IconInbox />
-                      <h2 className="font-semibold text-slate-100">Approvals</h2>
-                    </div>
-                    <span className="text-xs bg-white/10 text-slate-400 px-2 py-1 rounded-full border border-white/10">
-                      {approvals.filter((a) => a.status === "pending").length}
-                    </span>
-                  </div>
-                  <ul className="space-y-2">
-                    {approvals.length === 0 && (
-                      <p className="text-slate-500 text-sm">No approval requests yet.</p>
-                    )}
-                    {approvals.map((a) => (
-                      <li
-                        key={a.id}
-                        className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/[0.08] transition"
-                      >
-                        <div className="flex justify-between items-start">
                           <div>
-                            <p className="font-medium text-slate-100">{a.subject || "(no subject)"}</p>
-                            <p className="text-xs text-slate-400 mt-0.5">{a.recipient}</p>
-                            {a.body && (
-                              <p className="text-xs text-slate-500 mt-1.5">
-                                {a.body.length > 100 ? a.body.slice(0, 100) + "..." : a.body}
-                              </p>
-                            )}
+                            <p className="font-medium text-slate-100">{task.title}</p>
+                            <div className="flex gap-1.5 mt-2 items-center flex-wrap">
+                              <span className={`text-xs px-2 py-0.5 rounded-full ${priorityColor(task.priority)}`}>
+                                {task.priority}
+                              </span>
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-200 border border-violet-400/30">
+                                {task.status}
+                              </span>
+                              {formatDueDate(task.due_date) && (
+                                <span className="text-xs text-slate-400">
+                                  📅 {formatDueDate(task.due_date)}
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${approvalColor(a.status)} shrink-0 ml-2`}>
-                            {a.status}
-                          </span>
-                        </div>
-                        {a.status === "pending" && (
-                          <div className="flex gap-3 mt-3">
-                            <button
-                              className="text-emerald-400 hover:text-emerald-300 text-xs font-medium"
-                              onClick={() => approveRequest(a.id)}
-                            >
-                              Approve
-                            </button>
-                            <button
-                              className="text-red-400 hover:text-red-300 text-xs font-medium"
-                              onClick={() => rejectRequest(a.id)}
-                            >
-                              Reject
-                            </button>
+                          <button className="text-slate-600 hover:text-pink-400 text-sm" onClick={() => deleteTask(task.id)}>
+                            ✕
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {activeSection === "projects" && (
+                  <div className={cardClass}>
+                    <div className="flex items-center justify-between mb-5">
+                      <div className="flex items-center gap-2 text-violet-300">
+                        <IconFolder />
+                        <h2 className="font-semibold text-slate-100">Projects</h2>
+                      </div>
+                      <span className="text-xs bg-white/10 text-slate-400 px-2 py-1 rounded-full border border-white/10">
+                        {projects.length}
+                      </span>
+                    </div>
+                    <ul className="space-y-2">
+                      {projects.length === 0 && <p className="text-slate-500 text-sm">No projects yet.</p>}
+                      {projects.map((project) => (
+                        <li
+                          key={project.id}
+                          className="flex justify-between items-start bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/[0.08] transition"
+                        >
+                          <div>
+                            <p className="font-medium text-slate-100">{project.name}</p>
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-200 border border-violet-400/30 inline-block mt-2">
+                              {project.status}
+                            </span>
                           </div>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+                          <button
+                            className="text-slate-600 hover:text-pink-400 text-sm"
+                            onClick={() => deleteProject(project.id)}
+                          >
+                            ✕
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {activeSection === "events" && (
+                  <div className={cardClass}>
+                    <div className="flex items-center justify-between mb-5">
+                      <div className="flex items-center gap-2 text-fuchsia-300">
+                        <IconCalendar />
+                        <h2 className="font-semibold text-slate-100">Events</h2>
+                      </div>
+                      <span className="text-xs bg-white/10 text-slate-400 px-2 py-1 rounded-full border border-white/10">
+                        {events.length}
+                      </span>
+                    </div>
+                    <ul className="space-y-2">
+                      {events.length === 0 && <p className="text-slate-500 text-sm">No events yet.</p>}
+                      {events.map((event) => (
+                        <li
+                          key={event.id}
+                          className="flex justify-between items-start bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/[0.08] transition"
+                        >
+                          <div>
+                            <p className="font-medium text-slate-100">{event.title}</p>
+                            <span className="text-xs text-slate-400 mt-1 block">
+                              {formatEventTime(event.event_time)}
+                            </span>
+                          </div>
+                          <button className="text-slate-600 hover:text-pink-400 text-sm" onClick={() => deleteEvent(event.id)}>
+                            ✕
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {activeSection === "approvals" && (
+                  <div className={cardClass}>
+                    <div className="flex items-center justify-between mb-5">
+                      <div className="flex items-center gap-2 text-pink-300">
+                        <IconInbox />
+                        <h2 className="font-semibold text-slate-100">Approvals</h2>
+                      </div>
+                      <span className="text-xs bg-white/10 text-slate-400 px-2 py-1 rounded-full border border-white/10">
+                        {approvals.filter((a) => a.status === "pending").length}
+                      </span>
+                    </div>
+                    <ul className="space-y-2">
+                      {approvals.length === 0 && (
+                        <p className="text-slate-500 text-sm">No approval requests yet.</p>
+                      )}
+                      {approvals.map((a) => (
+                        <li
+                          key={a.id}
+                          className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/[0.08] transition"
+                        >
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="font-medium text-slate-100">{a.subject || "(no subject)"}</p>
+                              <p className="text-xs text-slate-400 mt-0.5">{a.recipient}</p>
+                              {a.body && (
+                                <p className="text-xs text-slate-500 mt-1.5">
+                                  {a.body.length > 100 ? a.body.slice(0, 100) + "..." : a.body}
+                                </p>
+                              )}
+                            </div>
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${approvalColor(a.status)} shrink-0 ml-2`}>
+                              {a.status}
+                            </span>
+                          </div>
+                          {a.status === "pending" && (
+                            <div className="flex gap-3 mt-3">
+                              <button
+                                className="text-emerald-400 hover:text-emerald-300 text-xs font-medium"
+                                onClick={() => approveRequest(a.id)}
+                              >
+                                Approve
+                              </button>
+                              <button
+                                className="text-red-400 hover:text-red-300 text-xs font-medium"
+                                onClick={() => rejectRequest(a.id)}
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* ---------- Toast ---------- */}
