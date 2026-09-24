@@ -13,23 +13,18 @@ load_dotenv()
 logger = logging.getLogger("workora.agent")
 
 client = AsyncOpenAI(
-    api_key=os.getenv("APINEX_API_KEY"),
-    base_url=os.getenv("APINEX_BASE_URL"),
+    api_key=os.getenv("NVIDIA_API_KEY"),
+    base_url="https://integrate.api.nvidia.com/v1",
 )
 
-# Ordered list of free APInex models. The first is the primary model in normal use.
+# Ordered list of NVIDIA NIM models. The first is the primary model in normal use.
 # If a model call fails (quota exceeded, subscription error, etc.), the next model
 # in this list is tried automatically, silently, without the user noticing.
 # Reorder this list any time by just changing the order of the strings below.
 MODEL_FALLBACK_LIST = [
-    "free/glm-5.3-flash",
-    "free/gemini-3.8-flash",
-    "free/deepseek-v4-pro-0813",
-    "free/gemini-3.1-pro",
-    "free/gpt-5.6-luna",
-    "free/deepseek-v4-flash-0731",
-    "free/qwen-3.8-max",
-    "free/muse-spark-1.3",
+    "meta/llama-3.3-70b-instruct",
+    "meta/llama-3.1-70b-instruct",
+    "meta/llama-3.1-8b-instruct",
 ]
 
 
