@@ -64,7 +64,7 @@ The project is built to demonstrate the core ideas of the Agentic AI course:
    |-- rag.py    chunking, hashed embeddings, pgvector search
    |
    |--> Neon PostgreSQL (+ pgvector)     data for all users
-   |--> LLM provider (OpenAI-compatible) model: free/glm-5.3-flash via APInex
+   |--> LLM provider (OpenAI-compatible) via APInex, with automatic multi-model fallback
    |--> Google (OAuth + Gmail API)       sign-in and email sending
 ```
 
@@ -74,7 +74,7 @@ The project is built to demonstrate the core ideas of the Agentic AI course:
 - Backend: FastAPI (Python), SQLAlchemy
 - Database: PostgreSQL on Neon, with the pgvector extension
 - Agent framework: OpenAI Agents SDK
-- LLM: OpenAI-compatible endpoint (currently `free/glm-5.3-flash`); the model is one line in `agent.py` and can be swapped
+- LLM: OpenAI-compatible endpoint via APInex, with **automatic multi-model fallback** — if the primary free model (`free/glm-5.3-flash`) hits its daily quota, the agent silently retries the next model in a prioritised list (Gemini, DeepSeek, GPT, Qwen, and others) before returning an error, so the app stays usable even when one model is temporarily unavailable
 - Auth: Google OAuth 2.0 (openid, email, profile, gmail.readonly, gmail.send) and JWT sessions
 
 ---
@@ -167,12 +167,14 @@ Every query is filtered by `user_id == current_user.id`.
 
 **Colour scheme, "Bioluminescent":**
 
-- Background: near-black deep-space navy (`#050914`, sidebar `#070c1a`)
-- Primary gradient: electric cyan to violet to magenta/pink (`cyan-400 -> violet-500 -> fuchsia-500`), used for the logo, Send button, user chat bubbles and the login button glow
-- Text accents: soft cyan, violet and pink tints
+- Background: near-black deep-space navy, with a faint cyan-lead / violet-secondary ambient glow (violet is used only as a dim background accent, not a primary colour)
+- Primary gradient: cyan to teal to gold (`cyan-400 -> teal-400 -> amber-400`), used for the logo, Send button, user chat bubbles, headings and the login button glow
+- Text accents: soft cyan, teal and gold tints; section icons use cyan, teal and gold to tell Tasks/Projects/Events/Approvals apart
 - Cards: frosted glass (`bg-white/5`, `border-white/10`, backdrop blur)
-- Gold/amber: used sparingly, only for the "high" priority badge
-- Status colours: emerald for approved, red for rejected, violet for pending
+- Destructive actions (delete): red, for a clear, standard warning colour
+- Status colours: emerald for approved, red for rejected, gold for pending
+
+**PWA (installable app):** the app has a `manifest.json`, an installable app icon (matching the in-app logo's cyan-teal-gold gradient), and a service worker, so it can be installed to a device's home screen/desktop and opens full-screen with no browser bars. This is an installable **shell** only — it does not yet support full offline use of tasks, chat, or data (an internet connection is still required).
 
 ---
 
@@ -193,7 +195,7 @@ Tested manually by the author:
 - Draft email > Approve > email actually received in Gmail
 - Knowledge base: saved a note in chat, then asked a question and got an answer from it
 
-Written but still to be re-checked before the final demo: reminders notification, logout, spreadsheet download and long-term memory after the login changes, and a second Google account to confirm data isolation.
+Not yet re-tested after the later polish work (color scheme, multi-model fallback, PWA): reminders notification, logout, spreadsheet download, and long-term memory, plus a second Google account to confirm data isolation still holds.
 
 ---
 
@@ -206,38 +208,42 @@ Written but still to be re-checked before the final demo: reminders notification
 - The UI lists and deletes tasks, projects and events; creating them is done through the chat (the agent) or the API. Task editing is available through the API only.
 - The knowledge base is used through the chat; there is no upload screen yet.
 
-## 14. Future work (deliberately out of scope for this submission)
-
-- WhatsApp integration
-- Automatic submission of assignments to school portals (Classroom, Moodle)
-- Closed-app push notifications (service workers)
-- Editing a user's existing Excel/Office files
-- Neural embeddings for RAG, and a Knowledge tab with file upload
-- Google OAuth production verification for public users
-
----
-
-## 15. Project structure
+## 14. Project structure
 
 ```
 Workora-AI/
+  docs/
+    screenshots/
+      login-screen.png
+      chat-task-creation.png
+      approvals-pending.png
   backend/
-    main.py            API routes
-    agent.py           agent, tools, memory
-    auth.py            Google OAuth + JWT
-    rag.py             knowledge base
-    models.py          database tables
-    database.py        connection to Neon
+    main.py             API routes
+    agent.py            agent, tools, memory, multi-model fallback
+    auth.py             Google OAuth + JWT
+    rag.py              knowledge base
+    models.py           database tables
+    database.py         connection to Neon
     requirements.txt
-    .env               (private, not in git)
+    .env.example        template — copy to .env and fill in real values
+    .env                (private, not in git)
   frontend/
-    app/page.tsx       whole interface
-    app/layout.tsx
+    app/
+      page.tsx          whole interface
+      layout.tsx        links the manifest, icons, and service worker
+      globals.css
+    public/
+      manifest.json     PWA config
+      sw.js             service worker (installable shell)
+      icons/            app icons (matches the in-app logo gradient)
+    .env.local.example  template — copy to .env.local if deploying
     package.json
 ```
 
-## 16. How to run
+## 15. How to run
 
-Backend: `cd backend`, activate the venv, `pip install -r requirements.txt`, create `.env` (variables: database URL, `APINEX_API_KEY`, `APINEX_BASE_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `JWT_SECRET`), then `uvicorn main:app --reload`.
-Frontend: `cd frontend`, `npm install`, `npm run dev`, then open http://localhost:3000.
-Google Cloud: enable the Gmail API, create a Web OAuth client with origin `http://localhost:3000` and redirect URI `http://127.0.0.1:8000/auth/google/callback`, and add your account as a test user.
+**Backend:** `cd backend`, create and activate a virtual environment, `pip install -r requirements.txt`, copy `.env.example` to `.env` and fill in real values (database URL, `APINEX_API_KEY`, `APINEX_BASE_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `JWT_SECRET`), then `uvicorn main:app --reload`.
+
+**Frontend:** `cd frontend`, `npm install`, `npm run dev`, then open `http://localhost:3000`. (`.env.local.example` is only needed once the backend is deployed somewhere other than `127.0.0.1:8000`.)
+
+**Google Cloud:** enable the Gmail API, create a Web OAuth client with origin `http://localhost:3000` and redirect URI `http://127.0.0.1:8000/auth/google/callback`, and add your account as a test user.

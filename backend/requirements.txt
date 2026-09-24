@@ -50,7 +50,6 @@ threadpoolctl==3.7.0
 truststore==0.10.4
 typing-inspection==0.4.4
 typing_extensions==4.16.0
-unicorn==2.1.4
 urllib3==2.8.0
 uvicorn==0.53.0
 websockets==16.1.1
