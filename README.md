@@ -1,7 +1,19 @@
 # Workora AI — Project Documentation
 
 **Course:** Agentic AI  **Instructor:** Eman Yahya  **Student:** Meerab Fatima (BS Software Engineering)
-**Submission date:** 19 September 2026
+**Submission date:** 23 September 2026
+
+---
+
+## Screenshots & Demo
+
+**[Watch the full demo video](https://drive.google.com/file/d/1gajbytuNS1KKsLzBkrZoheQARO2Jyh-p/view?usp=drive_link)** — walks through login, natural-language task/project/event creation, the human-in-the-loop email approval flow, and knowledge base (RAG) search, all in one continuous chat.
+
+*Recorded on 24 September 2026, the day after the (extended) 23 September submission deadline, to showcase later polish work: the updated cyan-teal-gold color scheme, multi-model fallback, and PWA install support. The core agent functionality shown was already complete and working at the time of submission.*
+
+| Login | Task creation | Human-in-the-loop approval |
+|---|---|---|
+| ![Login screen](docs/screenshots/login-screen.png) | ![Chat creating a task, project, and event](docs/screenshots/chat-task-creation.png) | ![Approvals tab with a pending email](docs/screenshots/approvals-pending.png) |
 
 ---
 
