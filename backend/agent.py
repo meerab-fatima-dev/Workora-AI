@@ -125,7 +125,8 @@ def build_tools(user_id: int):
         filename = f"{uuid.uuid4().hex[:8]}_{title.replace(' ', '_')}.xlsx"
         filepath = os.path.join("generated_files", filename)
         wb.save(filepath)
-        return f"Created spreadsheet '{title}'. Download it at http://127.0.0.1:8000/files/{filename}"
+        backend_url = os.getenv("BACKEND_URL", "http://127.0.0.1:8000")
+        return f"Created spreadsheet '{title}'. Download it at {backend_url}/files/{filename}"
 
     @function_tool
     def remember_preference_tool(fact: str) -> str:

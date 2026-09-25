@@ -8,8 +8,8 @@ from models import User
 
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
-REDIRECT_URI = "http://127.0.0.1:8000/auth/google/callback"
-FRONTEND_URL = "http://localhost:3000"
+REDIRECT_URI = os.getenv("BACKEND_URL", "http://127.0.0.1:8000") + "/auth/google/callback"
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 JWT_SECRET = os.getenv("JWT_SECRET", "dev-secret-change-me")
 
 SCOPES = "openid email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send"
