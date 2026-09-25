@@ -22,9 +22,9 @@ client = AsyncOpenAI(
 # in this list is tried automatically, silently, without the user noticing.
 # Reorder this list any time by just changing the order of the strings below.
 MODEL_FALLBACK_LIST = [
-    "meta/llama-3.3-70b-instruct",
-    "meta/llama-3.1-70b-instruct",
-    "meta/llama-3.1-8b-instruct",
+    "nvidia/nemotron-3-ultra-550b-a55b",
+    "z-ai/glm-5.3-flash",
+    "nvidia/nemotron-3.5-lightning-30b-a3b",
 ]
 
 

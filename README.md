@@ -74,7 +74,7 @@ The project is built to demonstrate the core ideas of the Agentic AI course:
 - Backend: FastAPI (Python), SQLAlchemy
 - Database: PostgreSQL on Neon, with the pgvector extension
 - Agent framework: OpenAI Agents SDK
-- LLM: OpenAI-compatible endpoint via NVIDIA NIM, with **automatic multi-model fallback** — if the primary model (`meta/llama-3.3-70b-instruct`) is unavailable, the agent silently retries the next model in a prioritised list (Llama 3.1 70B, Llama 3.1 8B) before returning an error, so the app stays usable even when one model is temporarily unavailable
+- LLM: OpenAI-compatible endpoint via NVIDIA NIM, with **automatic multi-model fallback** — if the primary model (`nvidia/nemotron-3-ultra-550b-a55b`) is unavailable, the agent silently retries the next model in a prioritised list (GLM 5.3 Flash, Nemotron 3.5 Lightning 30B) before returning an error, so the app stays usable even when one model is temporarily unavailable
 - Auth: Google OAuth 2.0 (openid, email, profile, gmail.readonly, gmail.send) and JWT sessions
 
 ---
