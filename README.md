@@ -242,7 +242,7 @@ Workora-AI/
 
 ## 15. How to run
 
-**Backend:** `cd backend`, create and activate a virtual environment, `pip install -r requirements.txt`, copy `.env.example` to `.env` and fill in real values (database URL, `NVIDIA_API_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `JWT_SECRET`), then `uvicorn main:app --reload`.
+**Backend:** `cd backend`, create and activate a virtual environment, `pip install -r requirements.txt`, copy `.env.example` to `.env` and fill in real values (database URL, `NVIDIA_API_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `JWT_SECRET`, `BACKEND_URL`, `FRONTEND_URL` — the defaults for the last two already work for local development and only need to be changed to the real deployed URLs once the app goes live), then `uvicorn main:app --reload`.
 
 **Frontend:** `cd frontend`, `npm install`, `npm run dev`, then open `http://localhost:3000`. (`.env.local.example` is only needed once the backend is deployed somewhere other than `127.0.0.1:8000`.)
 
