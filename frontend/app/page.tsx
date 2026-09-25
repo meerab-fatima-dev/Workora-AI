@@ -178,6 +178,46 @@ const StageLight = ({ strong = true }: { strong?: boolean }) => {
 
 type Section = "chat" | "tasks" | "projects" | "events" | "approvals";
 
+const CopyButton = ({ text }: { text: string }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback if clipboard permission is denied
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-cyan-300 transition-colors"
+      title="Copy to clipboard"
+    >
+      {copied ? (
+        <>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3 text-teal-400">
+            <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span className="text-teal-400">Copied</span>
+        </>
+      ) : (
+        <>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+          </svg>
+          <span>Copy</span>
+        </>
+      )}
+    </button>
+  );
+};
+
 export default function Home() {
   // ----- auth state -----
   const [authChecked, setAuthChecked] = useState(false);
@@ -690,6 +730,11 @@ export default function Home() {
                       >
                         {renderText(msg.text)}
                       </span>
+                      {msg.role !== "user" && msg.text.length > 150 && (
+                        <div className="mt-1 pl-1">
+                          <CopyButton text={msg.text} />
+                        </div>
+                      )}
                     </div>
                   ))}
                   {loading && (
