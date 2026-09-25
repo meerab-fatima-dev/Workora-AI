@@ -64,7 +64,7 @@ The project is built to demonstrate the core ideas of the Agentic AI course:
    |-- rag.py    chunking, hashed embeddings, pgvector search
    |
    |--> Neon PostgreSQL (+ pgvector)     data for all users
-   |--> LLM provider (OpenAI-compatible) via APInex, with automatic multi-model fallback
+   |--> LLM provider (OpenAI-compatible) via NVIDIA NIM, with automatic multi-model fallback
    |--> Google (OAuth + Gmail API)       sign-in and email sending
 ```
 
@@ -74,7 +74,7 @@ The project is built to demonstrate the core ideas of the Agentic AI course:
 - Backend: FastAPI (Python), SQLAlchemy
 - Database: PostgreSQL on Neon, with the pgvector extension
 - Agent framework: OpenAI Agents SDK
-- LLM: OpenAI-compatible endpoint via APInex, with **automatic multi-model fallback** — if the primary free model (`free/glm-5.3-flash`) hits its daily quota, the agent silently retries the next model in a prioritised list (Gemini, DeepSeek, GPT, Qwen, and others) before returning an error, so the app stays usable even when one model is temporarily unavailable
+- LLM: OpenAI-compatible endpoint via NVIDIA NIM, with **automatic multi-model fallback** — if the primary model (`meta/llama-3.3-70b-instruct`) is unavailable, the agent silently retries the next model in a prioritised list (Llama 3.1 70B, Llama 3.1 8B) before returning an error, so the app stays usable even when one model is temporarily unavailable
 - Auth: Google OAuth 2.0 (openid, email, profile, gmail.readonly, gmail.send) and JWT sessions
 
 ---
@@ -202,7 +202,7 @@ Not yet re-tested after the later polish work (color scheme, multi-model fallbac
 ## 13. Known limitations
 
 - The Google OAuth app is in **Testing** mode: only accounts added as test users can sign in. A public launch needs Google's verification review for the Gmail scopes.
-- The free LLM endpoint has a daily quota; when exhausted the chat returns an error until it resets.
+- The LLM endpoint (NVIDIA NIM) has a usage quota; when exhausted the agent tries fallback models before returning an error.
 - RAG uses hashed keyword vectors, not neural embeddings (see section 7).
 - Reminders work only while the browser tab is open.
 - The UI lists and deletes tasks, projects and events; creating them is done through the chat (the agent) or the API. Task editing is available through the API only.
@@ -242,7 +242,7 @@ Workora-AI/
 
 ## 15. How to run
 
-**Backend:** `cd backend`, create and activate a virtual environment, `pip install -r requirements.txt`, copy `.env.example` to `.env` and fill in real values (database URL, `APINEX_API_KEY`, `APINEX_BASE_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `JWT_SECRET`), then `uvicorn main:app --reload`.
+**Backend:** `cd backend`, create and activate a virtual environment, `pip install -r requirements.txt`, copy `.env.example` to `.env` and fill in real values (database URL, `NVIDIA_API_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `JWT_SECRET`), then `uvicorn main:app --reload`.
 
 **Frontend:** `cd frontend`, `npm install`, `npm run dev`, then open `http://localhost:3000`. (`.env.local.example` is only needed once the backend is deployed somewhere other than `127.0.0.1:8000`.)
 
