@@ -61,6 +61,16 @@ const IconPlus = () => (
     <path d="M12 5v14M5 12h14" strokeLinecap="round" />
   </svg>
 );
+const IconMenu = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+    <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />
+  </svg>
+);
+const IconX = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+    <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+  </svg>
+);
 const IconGoogle = () => (
   <svg viewBox="0 0 48 48" className="w-5 h-5">
     <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
@@ -225,6 +235,7 @@ export default function Home() {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // ----- app state -----
   const [activeSection, setActiveSection] = useState<Section>("chat");
@@ -617,13 +628,33 @@ export default function Home() {
 
   return (
     <main className="h-screen flex bg-[#030304] text-white overflow-hidden">
+      {/* ---------- Mobile overlay (behind sidebar, closes it on tap) ---------- */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 z-20 md:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
       {/* ---------- Sidebar ---------- */}
-      <aside className="w-64 shrink-0 bg-[#050506] border-r border-white/10 flex flex-col relative z-10">
+      <aside
+        className={`w-64 shrink-0 bg-[#050506] border-r border-white/10 flex flex-col
+        fixed inset-y-0 left-0 z-30 transition-transform duration-200 ease-in-out
+        ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
+        md:static md:translate-x-0 md:z-10`}
+      >
         <div className="flex items-center gap-2 px-5 py-5 border-b border-white/10">
           <div className={`w-8 h-8 rounded-lg ${gradientBg} flex items-center justify-center text-white shrink-0`}>
             <IconBolt />
           </div>
           <span className={`font-semibold ${gradientText}`}>Workora AI</span>
+          <button
+            onClick={() => setMobileMenuOpen(false)}
+            className="ml-auto text-slate-400 hover:text-white md:hidden"
+            aria-label="Close menu"
+          >
+            <IconX />
+          </button>
         </div>
 
         {/* New Chat */}
@@ -641,7 +672,10 @@ export default function Home() {
           {navItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveSection(item.id)}
+              onClick={() => {
+                setActiveSection(item.id);
+                setMobileMenuOpen(false);
+              }}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition ${activeSection === item.id
                 ? "bg-gradient-to-r from-cyan-500/20 to-teal-500/20 text-white border border-white/15"
                 : "text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent"
@@ -701,6 +735,17 @@ export default function Home() {
 
       {/* ---------- Main panel ---------- */}
       <div className="flex-1 min-w-0 h-screen flex flex-col relative">
+        {/* Mobile top bar with hamburger */}
+        <div className="md:hidden flex items-center gap-3 px-4 py-3 border-b border-white/10 bg-[#050506] relative z-10">
+          <button
+            onClick={() => setMobileMenuOpen(true)}
+            className="text-slate-300 hover:text-white"
+            aria-label="Open menu"
+          >
+            <IconMenu />
+          </button>
+          <span className={`font-semibold text-sm ${gradientText}`}>Workora AI</span>
+        </div>
         <StageLight strong={false} />
         <div className="relative z-10 flex-1 min-h-0 flex flex-col">
           {activeSection === "chat" ? (
